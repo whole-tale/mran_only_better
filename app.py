@@ -1,10 +1,12 @@
 # A simple fastAPI app that takes a snapshot date and
 # fetches proper source from CRAN
 import pyreadr
+from typing import Annotated
+from fastapi.param_functions import Header
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 import datetime
 import requests
 import uvicorn
@@ -20,6 +22,7 @@ CRAN_TOC = pyreadr.read_r("cran.toc.rds")[None]
 origins = [
     "http://localhost:8000",
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,6 +48,14 @@ async def get_snapshot(date: str):
             if row[col]:
                 yield f"{col}: {row[col]}\n"
         yield "\n"
+
+
+@app.get("/linux/bionic/src/contrib/{filename}")
+async def get_pkg(filename: str, user_agent: Annotated[str | None, Header()] = None):
+    R_version = user_agent.split(" ")[0][2:]
+    if os.path.exists(f"data/{R_version}/{filename}"):
+        return FileResponse(f"data/{R_version}/{filename}", filename=filename)
+    raise HTTPException(status_code=404, detail="File not found")
 
 
 @app.get("/snapshot/{date}/src/contrib/{filename}")

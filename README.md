@@ -56,3 +56,17 @@ downloaded 85 KB
 The downloaded source packages are in
 	'/tmp/Rtmp4fRWmH/downloaded_packages'
 ```
+
+### Extras
+
+```
+options(repos = c(CRAN = "http://localhost:8000/snapshot/2023-05-01", WT = "http://localhost:8000/linux/bionic/", pkgType = "linux/bionic"), HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version["platform"], R.version["arch"], R.version["os"])))
+```
+
+Put binary packages in data/`R_version`/. Run:
+
+```
+cd data/<R_version>
+R
+> write_PACKAGES(latestOnly=FALSE, addFiles=TRUE)
+```
